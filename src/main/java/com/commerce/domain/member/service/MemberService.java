@@ -2,7 +2,7 @@ package com.commerce.domain.member.service;
 
 import com.commerce.domain.member.entity.Member;
 import com.commerce.domain.member.repository.MemberRepository;
-import com.commerce.domain.web.member.dto.MemberJoinDto;
+import com.commerce.web.member.dto.MemberJoinDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

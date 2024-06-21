@@ -1,6 +1,6 @@
 package com.commerce.domain.member.service;
 
-import com.commerce.domain.web.member.dto.EmailSendDto;
+import com.commerce.web.member.dto.EmailSendDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

@@ -1,4 +1,4 @@
-package com.commerce.domain.web.member.dto;
+package com.commerce.web.member.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +26,6 @@ public class MemberJoinDto {
 
     @NotBlank(message = "주소를 입력해주세요.")
     private String address;
-    
+
     private boolean emailCheck = false;
 }

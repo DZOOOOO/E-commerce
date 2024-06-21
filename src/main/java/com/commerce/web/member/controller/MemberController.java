@@ -1,11 +1,11 @@
-package com.commerce.domain.web.member.controller;
+package com.commerce.web.member.controller;
 
 import com.commerce.domain.member.entity.Verification;
 import com.commerce.domain.member.service.EmailService;
 import com.commerce.domain.member.service.MemberService;
 import com.commerce.domain.member.service.VerificationService;
-import com.commerce.domain.web.member.dto.EmailSendDto;
-import com.commerce.domain.web.member.dto.MemberJoinDto;
+import com.commerce.web.member.dto.EmailSendDto;
+import com.commerce.web.member.dto.MemberJoinDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

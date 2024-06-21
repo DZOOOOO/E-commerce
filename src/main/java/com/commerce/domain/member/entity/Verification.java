@@ -36,6 +36,7 @@ public class Verification {
     @Column(name = "email_verification", nullable = false)
     private boolean emailVerification;
 
+    // 토큰 만료 처리 메서드
     public void updateTokenExpire(boolean check) {
         this.tokenExpire = check;
     }
