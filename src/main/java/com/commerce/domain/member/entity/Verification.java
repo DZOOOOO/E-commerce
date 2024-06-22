@@ -36,9 +36,24 @@ public class Verification {
     @Column(name = "email_verification", nullable = false)
     private boolean emailVerification;
 
+    @Column(name = "delete")
+    private boolean delete;
+
     // 토큰 만료 처리 메서드
-    public void updateTokenExpire(boolean check) {
-        this.tokenExpire = check;
+    public void emailTokenKill(boolean tokenExpire, boolean emailVerification, boolean delete) {
+        this.tokenExpire = tokenExpire;
+        this.emailVerification = emailVerification;
+        this.delete = delete;
+    }
+
+    public void updateEmailTokenStatus(boolean tokenExpire, boolean emailVerification) {
+        this.tokenExpire = tokenExpire;
+        this.emailVerification = emailVerification;
+    }
+
+    // 토큰 최신화
+    public void updateToken(String newToken) {
+        this.token = newToken;
     }
 }
 

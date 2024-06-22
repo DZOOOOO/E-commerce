@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 public class EmailSendDto {
 
-    // 받는 사람.
+    // 받는 사람 이메일.
     private String to;
 
     // 메일 제목

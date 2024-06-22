@@ -3,61 +3,86 @@ package com.commerce.domain.member.service;
 import com.commerce.domain.member.entity.Verification;
 import com.commerce.domain.member.repository.VerificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
+@Slf4j(topic = "메인 인증")
 @Service
 @RequiredArgsConstructor
 public class VerificationService {
 
     private final VerificationRepository verificationRepository;
 
-    @Transactional
-    public Verification findByEmail(String email) {
-        return verificationRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("찾는 토큰이 없습니다."));
+    @Transactional(readOnly = true)
+    public Optional<Verification> findByEmail(String email) {
+        return verificationRepository.findByEmail(email);
     }
 
     // 발송 메일 체크
     @Transactional
     public boolean checkEmail(String email, String token, boolean valid) {
-        Verification target = verificationRepository.findByEmail(email).orElse(null);
-        if ((valid && target == null) || (target != null && target.isTokenExpire())) {
-            Verification verification = Verification.builder()
-                    .email(email)
-                    .token(token)
-                    .expiryDate(LocalDateTime.now())
-                    .emailVerification(true)
-                    .tokenExpire(false)
-                    .build();
-            verificationRepository.save(verification);
+        log.info("email = {}, token = {}, valid = {}", email, token, valid);
+        // 이메일, 인증 토큰으로 조회
+        Verification target = verificationRepository
+                .findByEmailAndToken(email, token)
+                .orElse(null);
+
+        log.info("token = {}", token);
+        if (target != null
+                && target.getToken().equals(token)
+                && !target.isTokenExpire()
+                && !target.isEmailVerification()
+                && !target.isDelete()) {
+            updateTokenExpire(target);
             return true;
         }
         return false;
-//        throw new IllegalArgumentException("이미 토큰이 존재합니다.");
     }
 
     // 토큰 유효성 체크
     @Transactional(readOnly = true)
     public boolean findVeri(String email) {
-        Verification target = verificationRepository.findByEmail(email).orElse(null);
+        Verification target = verificationRepository
+                .findByEmailAndTokenExpireAndEmailVerificationAndDelete
+                        (email, true, true, false)
+                .orElse(null);
+        log.info("target = {}", target);
         if (target != null) {
-            LocalDateTime tokenTime = target.getExpiryDate().plusMinutes(1);
             // 메일인증 5분 이내로 회원가입 가능.
+            LocalDateTime tokenTime = target.getExpiryDate().plusMinutes(5);
             if (tokenTime.isAfter(LocalDateTime.now())) {
                 return true;
             } else {
-                // 토큰 유효시간 지남.
-                updateTokenExpire(target);
+                log.info("토큰 유효기간 만료.");
+                updateTokenKill(target);
             }
         }
         return false;
     }
 
-    private void updateTokenExpire(Verification target) {
-        target.updateTokenExpire(true);
+    @Transactional(readOnly = true)
+    public Verification findValidToken(String email,
+                                       boolean expiry,
+                                       boolean verification,
+                                       boolean delete) {
+        return verificationRepository
+                .findByEmailAndTokenExpireAndEmailVerificationAndDelete(email, expiry, verification, delete)
+                .orElse(null);
+    }
+
+    // 토큰 상태 업데이트
+    public void updateTokenExpire(Verification target) {
+        target.updateEmailTokenStatus(true, true);
+        verificationRepository.save(target);
+    }
+
+    // 토큰 만료.
+    public void updateTokenKill(Verification target) {
+        target.emailTokenKill(true, true, true);
         verificationRepository.save(target);
     }
 }
