@@ -1,5 +1,6 @@
 package com.commerce.web.member.dto;
 
+import com.commerce.domain.member.entity.MemberRoleEnum;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -9,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MemberJoinDto {
+public class MemberJoinRequestDto {
 
     @Email(message = "유효하지 않은 이메일 입니다.")
     @NotBlank(message = "이메일은 필수 항목입니다.")
@@ -26,6 +27,8 @@ public class MemberJoinDto {
 
     @NotBlank(message = "주소를 입력해주세요.")
     private String address;
+
+    private MemberRoleEnum role;
 
     private boolean emailCheck = false;
 }

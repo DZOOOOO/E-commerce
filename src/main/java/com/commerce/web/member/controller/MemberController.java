@@ -5,18 +5,19 @@ import com.commerce.domain.member.service.EmailService;
 import com.commerce.domain.member.service.MemberService;
 import com.commerce.domain.member.service.VerificationService;
 import com.commerce.web.member.dto.EmailSendDto;
-import com.commerce.web.member.dto.MemberJoinDto;
+import com.commerce.web.member.dto.MemberJoinRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-@Slf4j
+@Slf4j(topic = "MemberController")
 @RestController
-@RequestMapping("/api/v1/member")
+@RequestMapping("/api/member")
 @RequiredArgsConstructor
 public class MemberController {
 
@@ -24,14 +25,23 @@ public class MemberController {
     private final EmailService emailService;
     private final VerificationService verificationService;
 
+    //    @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
+
     // 이메일 발송 API
     @PostMapping("/send-email")
     public ResponseEntity<?> validEmail(@RequestBody EmailSendDto dto) {
-        boolean valid = verificationService.findVeri(dto.getTo());
-        // 이미 인증된 메일인 경우
-        if (valid) {
-            return new ResponseEntity<>("이미 인증된 메일입니다.", HttpStatus.OK);
+
+        Verification target = verificationService
+                .findValidToken(dto.getTo(), false, false, false);
+        // 이미 인증 메일이 존재하는 경우 -> 인증 토큰 만료 -> 새로운 메일 발송
+        if (target != null
+                && !target.isEmailVerification()
+                && !target.isTokenExpire()
+                && !target.isDelete()) {
+            emailService.updateExpiredToken(target);
         }
+
+        // 이메일 발송
         emailService.sendMail(dto);
         return new ResponseEntity<>("메일 발송..!", HttpStatus.OK);
     }
@@ -50,7 +60,7 @@ public class MemberController {
 
     // 회원가입 API
     @PostMapping("/join")
-    public ResponseEntity<?> memberJoin(@RequestBody @Valid MemberJoinDto dto,
+    public ResponseEntity<?> memberJoin(@RequestBody @Valid MemberJoinRequestDto dto,
                                         BindingResult bindingResult) {
         // DTO 예외처리
         if (bindingResult.hasErrors()) {
@@ -58,20 +68,18 @@ public class MemberController {
             return new ResponseEntity<>("오류", HttpStatus.BAD_REQUEST);
         }
 
-        // 토큰 유효성 체크
+        // 이메일 인증 토큰 유효성 체크
         boolean valid = verificationService.findVeri(dto.getEmail());
-        Verification token = verificationService.findByEmail(dto.getEmail());
-        log.info("토큰 만료 = {}", token.isTokenExpire());
         if (valid) {
-            // 토큰 만료
-            token.updateTokenExpire(true);
-            // 회원가입
-            memberService.join(dto);
-            return new ResponseEntity<>("회원가입 성공.", HttpStatus.OK);
+            Verification token = verificationService
+                    .findValidToken(dto.getEmail(), true, true, false);
+            if (token != null) {
+                // 회원가입
+                memberService.join(dto);
+                verificationService.updateTokenKill(token);
+                return new ResponseEntity<>("회원가입 성공.", HttpStatus.OK);
+            }
         }
-
-        // 토큰 만료
-        token.updateTokenExpire(true);
         return new ResponseEntity<>("이메일 인증 후 다시 시도해주세요.", HttpStatus.BAD_REQUEST);
     }
 }
