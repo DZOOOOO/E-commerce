@@ -39,6 +39,23 @@ public class Verification {
     @Column(name = "delete")
     private boolean delete;
 
+    // 토큰 생성 메서드
+    public static Verification createVerification(String email,
+                                                  String token,
+                                                  LocalDateTime expiryDate,
+                                                  boolean tokenExpire,
+                                                  boolean emailVerification,
+                                                  boolean delete) {
+        return Verification.builder()
+                .email(email)
+                .token(token)
+                .expiryDate(expiryDate)
+                .tokenExpire(tokenExpire)
+                .emailVerification(emailVerification)
+                .delete(delete)
+                .build();
+    }
+
     // 토큰 만료 처리 메서드
     public void emailTokenKill(boolean tokenExpire, boolean emailVerification, boolean delete) {
         this.tokenExpire = tokenExpire;

@@ -9,8 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -32,10 +30,10 @@ public class MemberService {
         String encodePassword = passwordEncoder.encode(dto.getPassword());
 
         // 회원 중복 확인
-        Optional<Member> findMember = memberRepository.findByEmail(email);
-        if (findMember.isPresent()) {
+        memberRepository.findByEmail(email).ifPresent(member
+                -> {
             throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
-        }
+        });
 
         // 회원 가입.
         Member member = Member.builder()

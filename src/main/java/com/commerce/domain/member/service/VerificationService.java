@@ -40,6 +40,7 @@ public class VerificationService {
             updateTokenExpire(target);
             return true;
         }
+
         return false;
     }
 
@@ -50,6 +51,7 @@ public class VerificationService {
                 .findByEmailAndTokenExpireAndEmailVerificationAndDelete
                         (email, true, true, false)
                 .orElse(null);
+
         log.info("target = {}", target);
         if (target != null) {
             // 메일인증 5분 이내로 회원가입 가능.
@@ -61,6 +63,7 @@ public class VerificationService {
                 updateTokenKill(target);
             }
         }
+
         return false;
     }
 

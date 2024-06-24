@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,16 +21,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final MemberRepository memberRepository;
 
     @Override
-    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return memberRepository.findByEmail(username)
                 .map(member -> createUser(username, member))
                 .orElseThrow(() -> new UsernameNotFoundException(username + " -> 찾을 수 없는 이메일입니다."));
     }
 
+    // JWT -> 메일, 권한.
     private User createUser(String memberName, Member member) {
         List<GrantedAuthority> authority
                 = new ArrayList<>(List.of(new SimpleGrantedAuthority(member.getRole().getAuthority())));
         return new User(member.getEmail(), member.getPassword(), authority);
     }
+
 }

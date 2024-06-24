@@ -52,9 +52,12 @@ public class TokenProvider implements InitializingBean {
         Date validity = new Date(now + this.tokenValidityInMilliseconds);
 
         return Jwts.builder()
+                // 토큰 내용
                 .setSubject(authentication.getName())
                 .claim(AUTHORITIES_KEY, authorities)
+                // 토큰 암호화
                 .signWith(key, SignatureAlgorithm.HS256)
+                // 토큰 만료
                 .setExpiration(validity)
                 .compact();
     }
@@ -66,9 +69,7 @@ public class TokenProvider implements InitializingBean {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        System.out.println("=======================");
-        System.out.println(claims.get(AUTHORITIES_KEY).toString());
-        System.out.println("=======================");
+
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
                         .map(SimpleGrantedAuthority::new)
