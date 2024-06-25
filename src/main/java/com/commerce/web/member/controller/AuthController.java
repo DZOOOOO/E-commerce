@@ -2,8 +2,8 @@ package com.commerce.web.member.controller;
 
 import com.commerce.jwt.JwtFilter;
 import com.commerce.jwt.TokenProvider;
-import com.commerce.web.member.dto.MemberLoginRequestDto;
-import com.commerce.web.member.dto.TokenDto;
+import com.commerce.web.member.dto.request.MemberLoginRequestDto;
+import com.commerce.web.member.dto.response.TokenResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class AuthController {
 
     // 로그인.
     @PostMapping("/authenticate")
-    public ResponseEntity<TokenDto> authorize(@Valid @RequestBody MemberLoginRequestDto loginDto) {
+    public ResponseEntity<TokenResponseDto> authorize(@Valid @RequestBody MemberLoginRequestDto loginDto) {
 
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
@@ -46,6 +46,6 @@ public class AuthController {
         httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
 
         // 응답 객체 만들어 주기.
-        return new ResponseEntity<>(new TokenDto(jwt), httpHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(new TokenResponseDto(jwt), httpHeaders, HttpStatus.OK);
     }
 }
