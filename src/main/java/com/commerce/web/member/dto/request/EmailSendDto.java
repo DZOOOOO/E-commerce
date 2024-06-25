@@ -1,4 +1,4 @@
-package com.commerce.web.member.dto;
+package com.commerce.web.member.dto.request;
 
 import lombok.*;
 

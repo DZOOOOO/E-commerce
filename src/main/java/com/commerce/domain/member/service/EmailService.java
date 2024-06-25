@@ -2,7 +2,7 @@ package com.commerce.domain.member.service;
 
 import com.commerce.domain.member.entity.Verification;
 import com.commerce.domain.member.repository.VerificationRepository;
-import com.commerce.web.member.dto.EmailSendDto;
+import com.commerce.web.member.dto.request.EmailSendDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

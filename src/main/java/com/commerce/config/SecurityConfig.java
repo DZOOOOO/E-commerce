@@ -27,11 +27,10 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    public SecurityConfig(
-            TokenProvider tokenProvider,
-            CorsFilter corsFilter,
-            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
-            JwtAccessDeniedHandler jwtAccessDeniedHandler) {
+    public SecurityConfig(TokenProvider tokenProvider,
+                          CorsFilter corsFilter,
+                          JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                          JwtAccessDeniedHandler jwtAccessDeniedHandler) {
         this.tokenProvider = tokenProvider;
         this.corsFilter = corsFilter;
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
@@ -58,10 +57,16 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        // 회원가입 관련 API 누구나 접근가능.
+                        // 회원관련 API 누구나 접근가능.
                         .requestMatchers(
-                                "/api/member/**",
-                                "/api/authenticate").permitAll()
+                                "/api/member/send-email",  // 인증 이메일 발송
+                                "/api/member/confirm-email", // 이메일 인증 확인
+                                "/api/member/join", // 회원가입
+                                "/api/member/mypage", // GET - 마이페이지 조회
+                                "/api/member/mypage/info", // PUT - 주소, 전화번호 업데이트
+                                "/api/member/mypage/password", // 비밀번호 업데이트
+                                "/api/authenticate" // 로그인
+                        ).permitAll()
                         // h2 db 접근 누구나 가능
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .anyRequest().authenticated()

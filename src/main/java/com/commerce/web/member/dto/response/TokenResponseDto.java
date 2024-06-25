@@ -1,4 +1,4 @@
-package com.commerce.web.member.dto;
+package com.commerce.web.member.dto.response;
 
 import lombok.*;
 
@@ -7,6 +7,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TokenDto {
+public class TokenResponseDto {
+    // JWT 반환.
     private String token;
 }
