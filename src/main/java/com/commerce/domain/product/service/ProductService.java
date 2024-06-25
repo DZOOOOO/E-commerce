@@ -30,6 +30,7 @@ public class ProductService {
                 .productStock(dto.getProductStock())
                 .productDescription(dto.getProductDescription())
                 .productCategory(dto.getProductCategory())
+                .productPurchaseStatus(true) // 기본적으로 구매 가능.
                 .build();
         productRepository.save(product);
     }
@@ -45,6 +46,7 @@ public class ProductService {
                         .productName(p.getProductName())
                         .productPrice(p.getProductPrice())
                         .productStock(p.getProductStock())
+                        .productPurchaseStatus(p.isProductPurchaseStatus())
                         .build());
         return new ProductPageResponse<>(productPage);
     }
@@ -60,6 +62,7 @@ public class ProductService {
                 .productPrice(product.getProductPrice())
                 .productStock(product.getProductStock())
                 .productDescription(product.getProductDescription())
+                .productPurchaseStatus(product.isProductPurchaseStatus())
                 .build();
     }
 }

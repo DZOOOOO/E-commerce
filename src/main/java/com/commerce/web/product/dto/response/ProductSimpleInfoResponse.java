@@ -13,4 +13,5 @@ public class ProductSimpleInfoResponse {
     private String productName;
     private Integer productPrice;
     private Integer productStock;
+    private Boolean productPurchaseStatus;
 }

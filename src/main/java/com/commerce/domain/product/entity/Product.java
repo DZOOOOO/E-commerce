@@ -41,13 +41,18 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductCategory productCategory;
 
+    @Column(name = "product_purchase_status")
+    private boolean productPurchaseStatus;
+
     // 상품 수정 메서드
     public void updateProduct(String productName, int productPrice,
-                              int productStock, String productDescription) {
+                              int productStock, String productDescription,
+                              boolean productPurchaseStatus) {
         this.productName = productName;
         this.productPrice = productPrice;
         this.productStock = productStock;
         this.productDescription = productDescription;
+        this.productPurchaseStatus = productPurchaseStatus;
     }
 
     @CreatedDate
