@@ -48,30 +48,6 @@ public class SecurityConfig {
                 // token 방식 사용 -> csrf disable
                 .csrf((csrf) -> csrf.disable())
 
-                // Cors 처리
-                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-                // jwt 예외 처리 추가.
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .accessDeniedHandler(jwtAccessDeniedHandler)
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
-
-                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        // 회원관련 API 누구나 접근가능.
-                        .requestMatchers(
-                                "/api/member/send-email",  // 인증 이메일 발송
-                                "/api/member/confirm-email", // 이메일 인증 확인
-                                "/api/member/join", // 회원가입
-                                "/api/member/mypage", // GET - 마이페이지 조회
-                                "/api/member/mypage/info", // PUT - 주소, 전화번호 업데이트
-                                "/api/member/mypage/password", // 비밀번호 업데이트
-                                "/api/authenticate" // 로그인
-                        ).permitAll()
-                        // h2 db 접근 누구나 가능
-                        .requestMatchers(PathRequest.toH2Console()).permitAll()
-                        .anyRequest().authenticated()
-                )
-
                 // 세션 X -> stateless 방식.
                 .sessionManagement(sessionManagement ->
                         sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -82,8 +58,37 @@ public class SecurityConfig {
                         headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
 
+                // Cors 처리
+                .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+
+                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+                        // resources 접근 허용.
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                        // h2 db 접근 누구나 가능
+                        .requestMatchers(PathRequest.toH2Console()).permitAll()
+                        // 회원관련 API, 상품관련 API 누구나 접근가능.
+                        .requestMatchers(
+                                "/api/member/send-email",  // 인증 이메일 발송
+                                "/api/member/confirm-email", // 이메일 인증 확인
+                                "/api/member/join", // 회원가입
+                                "/api/member/mypage", // GET - 마이페이지 조회
+                                "/api/member/mypage/info", // PUT - 주소, 전화번호 업데이트
+                                "/api/member/mypage/password", // 비밀번호 업데이트
+                                "/api/authenticate", // 로그인
+                                "/api/product/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+
+                // jwt 예외 처리 추가.
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+
                 .with(new JwtSecurityConfig(tokenProvider), customizer -> {
                 });
+
         return http.build();
     }
 }
