@@ -44,6 +44,17 @@ public class Member {
     @Enumerated(value = EnumType.STRING)
     private MemberRoleEnum role;
 
+    // 주소, 전화번호 업데이트 메서드
+    public void updateAddressPhone(String address, String phone) {
+        this.address = address;
+        this.phone = phone;
+    }
+
+    // 비밀번호 업데이트 메서드
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
