@@ -4,14 +4,19 @@ import com.commerce.domain.member.entity.Verification;
 import com.commerce.domain.member.service.EmailService;
 import com.commerce.domain.member.service.MemberService;
 import com.commerce.domain.member.service.VerificationService;
-import com.commerce.web.member.dto.EmailSendDto;
-import com.commerce.web.member.dto.MemberJoinRequestDto;
+import com.commerce.web.member.dto.request.EmailSendDto;
+import com.commerce.web.member.dto.request.MemberInfoUpdateRequestDto;
+import com.commerce.web.member.dto.request.MemberJoinRequestDto;
+import com.commerce.web.member.dto.request.MemberPasswordUpdateRequestDto;
+import com.commerce.web.member.dto.response.MemberInfoResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +29,6 @@ public class MemberController {
     private final MemberService memberService;
     private final EmailService emailService;
     private final VerificationService verificationService;
-
-    //    @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
 
     // 이메일 발송 API
     @PostMapping("/send-email")
@@ -81,5 +84,31 @@ public class MemberController {
             }
         }
         return new ResponseEntity<>("이메일 인증 후 다시 시도해주세요.", HttpStatus.BAD_REQUEST);
+    }
+
+    // 마이페이지 조회 API -- 관리자, 유저 권한만 접근 가능
+    @GetMapping("/mypage")
+    @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> memberMyPage(@AuthenticationPrincipal UserDetails userDetails) {
+        MemberInfoResponse myPage = memberService.getMyPage(userDetails.getUsername());
+        return new ResponseEntity<>(myPage, HttpStatus.OK);
+    }
+
+    // 주소, 전화번호 업데이트 API
+    @PutMapping("/mypage/info")
+    @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> memberInfoUpdate(@AuthenticationPrincipal UserDetails userDetails,
+                                              @RequestBody MemberInfoUpdateRequestDto dto) {
+        memberService.updateMemberInfo(userDetails.getUsername(), dto);
+        return new ResponseEntity<>("업데이트 완료..!", HttpStatus.OK);
+    }
+
+    // 비밀번호 변경 API
+    @PutMapping("/mypage/password")
+    @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<?> memberPasswordUpdate(@AuthenticationPrincipal UserDetails userDetails,
+                                                  @RequestBody MemberPasswordUpdateRequestDto dto) {
+        memberService.updateMemberPassword(userDetails.getUsername(), dto);
+        return new ResponseEntity<>("업데이트 완료..!", HttpStatus.OK);
     }
 }
