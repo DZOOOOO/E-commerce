@@ -42,7 +42,17 @@ public class Product {
     private ProductCategory productCategory;
 
     @Column(name = "product_purchase_status")
-    private boolean productPurchaseStatus;
+    private boolean productPurchaseStatus; // 상품 구매 가능여부
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @LastModifiedDate
+    @Column(name = "updated_at", updatable = false)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     // 상품 수정 메서드
     public void updateProduct(String productName, int productPrice,
@@ -54,14 +64,4 @@ public class Product {
         this.productDescription = productDescription;
         this.productPurchaseStatus = productPurchaseStatus;
     }
-
-    @CreatedDate
-    @Column(name = "created_at", updatable = false)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @LastModifiedDate
-    @Column(name = "updated_at", updatable = false)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt = LocalDateTime.now();
 }

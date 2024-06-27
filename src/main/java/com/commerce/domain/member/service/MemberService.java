@@ -2,6 +2,8 @@ package com.commerce.domain.member.service;
 
 import com.commerce.domain.member.entity.Member;
 import com.commerce.domain.member.repository.MemberRepository;
+import com.commerce.domain.order.entity.Cart;
+import com.commerce.domain.order.repository.CartRepository;
 import com.commerce.util.SecurityUtil;
 import com.commerce.web.member.dto.request.MemberInfoUpdateRequestDto;
 import com.commerce.web.member.dto.request.MemberPasswordUpdateRequestDto;
@@ -12,13 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final CartRepository cartRepository;
     private final PasswordEncoder passwordEncoder;
 
     // 이메일 회원 조회
@@ -50,6 +51,12 @@ public class MemberService {
                 .role(dto.getRole())
                 .build();
         memberRepository.save(member);
+
+        // 상품 장바구니 생성.
+        Cart cart = Cart.builder()
+                .member(member)
+                .build();
+        cartRepository.save(cart);
     }
 
     // 마이 페이지 조회

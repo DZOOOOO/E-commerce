@@ -63,7 +63,6 @@ public class VerificationService {
                 updateTokenKill(target);
             }
         }
-
         return false;
     }
 

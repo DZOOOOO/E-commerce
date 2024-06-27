@@ -35,14 +35,6 @@ public class EmailService {
         Verification verification = Verification
                 .createVerification(dto.getTo(), token, LocalDateTime.now(),
                         false, false, false);
-//        Verification verification = Verification.builder()
-//                .email(dto.getTo())
-//                .token(token)
-//                .expiryDate(LocalDateTime.now())
-//                .emailVerification(false)
-//                .tokenExpire(false)
-//                .delete(false)
-//                .build();
         verificationRepository.save(verification);
 
         // 메일 발송

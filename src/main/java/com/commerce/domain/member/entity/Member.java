@@ -1,5 +1,8 @@
 package com.commerce.domain.member.entity;
 
+import com.commerce.domain.order.entity.Cart;
+import com.commerce.domain.order.entity.Order;
+import com.commerce.domain.order.entity.WishList;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +14,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -40,9 +45,31 @@ public class Member {
     @Column(name = "address", nullable = false)
     private String address;
 
-    @Column(nullable = false)
+    @Column(name = "role", nullable = false)
     @Enumerated(value = EnumType.STRING)
     private MemberRoleEnum role;
+
+    // wishList
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<WishList> wishList = new ArrayList<>();
+
+    // cart
+    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    private Cart cart;
+
+    // order
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    private List<Order> orderList = new ArrayList<>();
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @LastModifiedDate
+    @Column(name = "updated_at", updatable = false)
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     // 주소, 전화번호 업데이트 메서드
     public void updateAddressPhone(String address, String phone) {
@@ -54,14 +81,4 @@ public class Member {
     public void updatePassword(String password) {
         this.password = password;
     }
-
-    @CreatedDate
-    @Column(name = "created_at", updatable = false)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @LastModifiedDate
-    @Column(name = "updated_at", updatable = false)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt = LocalDateTime.now();
 }

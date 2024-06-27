@@ -1,4 +1,4 @@
-package com.commerce.web.product.web.controller;
+package com.commerce.web.product.controller;
 
 import com.commerce.domain.product.service.ProductService;
 import com.commerce.web.product.dto.request.ProductRegisterRequestDto;
