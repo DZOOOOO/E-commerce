@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-@Slf4j(topic = "메인 인증")
+@Slf4j(topic = "메일 인증")
 @Service
 @RequiredArgsConstructor
 public class VerificationService {
@@ -25,22 +25,19 @@ public class VerificationService {
     // 발송 메일 체크
     @Transactional
     public boolean checkEmail(String email, String token, boolean valid) {
-        log.info("email = {}, token = {}, valid = {}", email, token, valid);
         // 이메일, 인증 토큰으로 조회
         Verification target = verificationRepository
                 .findByEmailAndToken(email, token)
                 .orElse(null);
-
-        log.info("token = {}", token);
         if (target != null
                 && target.getToken().equals(token)
                 && !target.isTokenExpire()
                 && !target.isEmailVerification()
                 && !target.isDelete()) {
+            // 토큰 상태 업데이트.
             updateTokenExpire(target);
             return true;
         }
-
         return false;
     }
 
@@ -48,13 +45,11 @@ public class VerificationService {
     @Transactional(readOnly = true)
     public boolean findVeri(String email) {
         Verification target = verificationRepository
-                .findByEmailAndTokenExpireAndEmailVerificationAndDelete
-                        (email, true, true, false)
+                .findByEmailAndTokenExpireAndEmailVerificationAndDelete(email, true, true, false)
                 .orElse(null);
 
-        log.info("target = {}", target);
         if (target != null) {
-            // 메일인증 5분 이내로 회원가입 가능.
+            // 메일인증 5분 이내로 회원가입 가능. -> 5분 지나면 토큰 만료.
             LocalDateTime tokenTime = target.getExpiryDate().plusMinutes(5);
             if (tokenTime.isAfter(LocalDateTime.now())) {
                 return true;
