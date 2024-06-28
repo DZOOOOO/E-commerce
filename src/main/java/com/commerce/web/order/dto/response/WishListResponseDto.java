@@ -9,7 +9,8 @@ import lombok.*;
 @Builder
 public class WishListResponseDto {
 
-    private Long id;
+
+    private Long productId;
     private String productName;
     private Integer price;
 
