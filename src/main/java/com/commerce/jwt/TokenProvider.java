@@ -92,6 +92,7 @@ public class TokenProvider implements InitializingBean {
             log.error("잘못된 JWT 서명입니다: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
             log.error("만료된 JWT 토큰입니다: {}", e.getMessage());
+            // 리프레시 토큰으로 토큰 다시 발급.
         } catch (UnsupportedJwtException e) {
             log.error("지원되지 않는 JWT 토큰입니다: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
