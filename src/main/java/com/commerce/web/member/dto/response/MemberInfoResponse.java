@@ -1,6 +1,9 @@
 package com.commerce.web.member.dto.response;
 
+import com.commerce.web.order.dto.response.WishListResponseDto;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,5 +17,5 @@ public class MemberInfoResponse {
     private String phone;
     private String address;
     private String role;
-
+    private List<WishListResponseDto> wishList;
 }

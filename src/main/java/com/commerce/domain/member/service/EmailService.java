@@ -21,6 +21,56 @@ public class EmailService {
 
     @Transactional
     public void sendMail(EmailSendDto dto) {
+        String token = generateToken();
+        String confirmationUrl = buildConfirmationUrl(dto.getTo(), token, dto.getText());
+
+        saveVerificationToken(dto.getTo(), token);
+
+        sendEmail(dto, confirmationUrl);
+    }
+
+    // 이메일 인증 토큰 발급
+    private String generateToken() {
+        return UUID.randomUUID().toString().substring(0, 10);
+    }
+
+    // 메일확인 url 만들기.
+    private String buildConfirmationUrl(String email, String token, String text) {
+        return "http://localhost:8080/api/member/confirm-email?" +
+                "email=" + email +
+                "&token=" + token +
+                "&" + text;
+    }
+
+    // 토큰 저장
+    private void saveVerificationToken(String email, String token) {
+        Verification verification = Verification.createVerification(
+                email, token, LocalDateTime.now(), false, false, false);
+        verificationRepository.save(verification);
+    }
+
+    // 메일발송 메서드
+    private void sendEmail(EmailSendDto dto, String confirmationUrl) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(dto.getTo());
+        message.setSubject(dto.getSubject());
+        message.setText(confirmationUrl);
+        message.setFrom("devpet0327@gmail.com");
+
+        mailSender.send(message);
+    }
+
+    // 토큰 만료.
+    public void updateExpiredToken(Verification verification) {
+        verification.emailTokenKill(true, true, true);
+        verificationRepository.save(verification);
+    }
+
+
+
+    // 아카이브
+    @Transactional
+    public void before_sendMail(EmailSendDto dto) {
         SimpleMailMessage message = new SimpleMailMessage();
         StringBuilder sb = new StringBuilder();
         String email = "email=" + dto.getTo();
@@ -45,11 +95,4 @@ public class EmailService {
 
         mailSender.send(message);
     }
-
-    // 토큰 만료.
-    public void updateExpiredToken(Verification verification) {
-        verification.emailTokenKill(true, true, true);
-        verificationRepository.save(verification);
-    }
-
 }

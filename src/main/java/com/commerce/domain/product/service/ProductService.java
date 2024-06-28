@@ -2,6 +2,8 @@ package com.commerce.domain.product.service;
 
 import com.commerce.domain.product.entity.Product;
 import com.commerce.domain.product.repository.ProductRepository;
+import com.commerce.web.exception.product.ProductException;
+import com.commerce.web.exception.product.ProductExceptionCode;
 import com.commerce.web.product.dto.request.ProductRegisterRequestDto;
 import com.commerce.web.product.dto.response.ProductInfoResponse;
 import com.commerce.web.product.dto.response.ProductPageResponse;
@@ -39,8 +41,8 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductPageResponse<ProductSimpleInfoResponse> getProductList(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProductSimpleInfoResponse> productPage = productRepository.findAll(pageable).map(p ->
-                ProductSimpleInfoResponse
+        Page<ProductSimpleInfoResponse> productPage = productRepository.findAll(pageable)
+                .map(p -> ProductSimpleInfoResponse
                         .builder()
                         .productId(p.getId())
                         .productName(p.getProductName())
@@ -55,7 +57,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductInfoResponse getProductInfo(Long productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("상품이 없습니다."));
+                .orElseThrow(() -> new ProductException(ProductExceptionCode.NOT_FOUND));
         return ProductInfoResponse.builder()
                 .productId(product.getId())
                 .productName(product.getProductName())

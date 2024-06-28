@@ -1,6 +1,5 @@
 package com.commerce.domain.member.entity;
 
-import com.commerce.domain.order.entity.Cart;
 import com.commerce.domain.order.entity.Order;
 import com.commerce.domain.order.entity.WishList;
 import jakarta.persistence.*;
@@ -52,10 +51,6 @@ public class Member {
     // wishList
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<WishList> wishList = new ArrayList<>();
-
-    // cart
-    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
-    private Cart cart;
 
     // order
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)

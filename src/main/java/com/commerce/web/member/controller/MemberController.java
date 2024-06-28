@@ -9,6 +9,8 @@ import com.commerce.web.member.dto.request.MemberInfoUpdateRequestDto;
 import com.commerce.web.member.dto.request.MemberJoinRequestDto;
 import com.commerce.web.member.dto.request.MemberPasswordUpdateRequestDto;
 import com.commerce.web.member.dto.response.MemberInfoResponse;
+import com.commerce.web.member.dto.response.message.MemberMessage;
+import com.commerce.web.member.dto.response.MemberResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j(topic = "MemberController")
@@ -32,44 +33,57 @@ public class MemberController {
 
     // 이메일 발송 API
     @PostMapping("/send-email")
-    public ResponseEntity<?> validEmail(@RequestBody EmailSendDto dto) {
+    public ResponseEntity<?> validEmail(@Valid @RequestBody EmailSendDto dto) {
 
         Verification target = verificationService
                 .findValidToken(dto.getTo(), false, false, false);
         // 이미 인증 메일이 존재하는 경우 -> 인증 토큰 만료 -> 새로운 메일 발송
-        if (target != null
-                && !target.isEmailVerification()
-                && !target.isTokenExpire()
-                && !target.isDelete()) {
+        if (shouldExpireExistingToken(target)) {
             emailService.updateExpiredToken(target);
         }
 
         // 이메일 발송
         emailService.sendMail(dto);
-        return new ResponseEntity<>("메일 발송..!", HttpStatus.OK);
+
+        MemberResponseDto response = MemberResponseDto.builder()
+                .message(MemberMessage.MAIL_SEND_OK)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
+     * 이미 존재하는 유효한 토큰을 만료시킬 필요가 있는지 확인합니다.
+     *
+     * @param target 검증할 대상 Verification 객체
+     * @return 만료시킬 필요가 있으면 true, 그렇지 않으면 false
+     */
+    private boolean shouldExpireExistingToken(Verification target) {
+        return target != null
+                && !target.isEmailVerification()
+                && !target.isTokenExpire()
+                && !target.isDelete();
     }
 
     // 이메일 인증 API
     @GetMapping("/confirm-email")
-    public ResponseEntity<?> confirmEmail(@RequestParam String email,
-                                          @RequestParam String token,
-                                          @RequestParam boolean valid) {
-        boolean checkEmail = verificationService.checkEmail(email, token, valid);
-        if (checkEmail) {
-            return new ResponseEntity<>("메일이 인증되었습니다.", HttpStatus.OK);
-        }
-        return new ResponseEntity<>("이미 인증된 메일입니다.", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<MemberResponseDto> confirmEmail(@RequestParam String email,
+                                                          @RequestParam String token,
+                                                          @RequestParam boolean valid) {
+        boolean isEmailValid = verificationService.checkEmail(email, token, valid);
+        MemberMessage memberMessage = isEmailValid ? MemberMessage.MAIL_OK_AUTH
+                : MemberMessage.MAIL_ALREADY_AUTH;
+        HttpStatus status = isEmailValid ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+
+        MemberResponseDto response = MemberResponseDto.builder()
+                .message(memberMessage)
+                .build();
+
+        return new ResponseEntity<>(response, status);
     }
 
     // 회원가입 API
     @PostMapping("/join")
-    public ResponseEntity<?> memberJoin(@RequestBody @Valid MemberJoinRequestDto dto,
-                                        BindingResult bindingResult) {
-        // DTO 예외처리
-        if (bindingResult.hasErrors()) {
-            log.error("bindingResult = {}", bindingResult.getFieldErrors());
-            return new ResponseEntity<>("오류", HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> memberJoin(@Valid @RequestBody MemberJoinRequestDto dto) {
 
         // 이메일 인증 토큰 유효성 체크
         boolean valid = verificationService.findVeri(dto.getEmail());
@@ -80,10 +94,15 @@ public class MemberController {
                 // 회원가입
                 memberService.join(dto);
                 verificationService.updateTokenKill(token);
-                return new ResponseEntity<>("회원가입 성공.", HttpStatus.OK);
+                return new ResponseEntity<>(MemberResponseDto.builder()
+                        .message(MemberMessage.MEMBER_JOIN_OK)
+                        .build(), HttpStatus.OK);
             }
         }
-        return new ResponseEntity<>("이메일 인증 후 다시 시도해주세요.", HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>(MemberResponseDto.builder()
+                .message(MemberMessage.MAIL_NOT_AUTH)
+                .build(), HttpStatus.BAD_REQUEST);
     }
 
     // 마이페이지 조회 API -- 관리자, 유저 권한만 접근 가능
@@ -100,7 +119,9 @@ public class MemberController {
     public ResponseEntity<?> memberInfoUpdate(@AuthenticationPrincipal UserDetails userDetails,
                                               @RequestBody MemberInfoUpdateRequestDto dto) {
         memberService.updateMemberInfo(userDetails.getUsername(), dto);
-        return new ResponseEntity<>("업데이트 완료..!", HttpStatus.OK);
+        return new ResponseEntity<>(MemberResponseDto.builder()
+                .message(MemberMessage.MEMBER_UPDATE_OK)
+                .build(), HttpStatus.OK);
     }
 
     // 비밀번호 변경 API
@@ -109,6 +130,9 @@ public class MemberController {
     public ResponseEntity<?> memberPasswordUpdate(@AuthenticationPrincipal UserDetails userDetails,
                                                   @RequestBody MemberPasswordUpdateRequestDto dto) {
         memberService.updateMemberPassword(userDetails.getUsername(), dto);
-        return new ResponseEntity<>("업데이트 완료..!", HttpStatus.OK);
+        return new ResponseEntity<>(MemberResponseDto.builder()
+                .message(MemberMessage.MEMBER_UPDATE_OK)
+                .build(), HttpStatus.OK);
     }
+
 }

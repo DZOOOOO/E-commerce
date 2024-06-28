@@ -2,31 +2,38 @@ package com.commerce.domain.member.service;
 
 import com.commerce.domain.member.entity.Member;
 import com.commerce.domain.member.repository.MemberRepository;
-import com.commerce.domain.order.entity.Cart;
-import com.commerce.domain.order.repository.CartRepository;
+import com.commerce.domain.product.entity.Product;
+import com.commerce.domain.product.repository.ProductRepository;
 import com.commerce.util.SecurityUtil;
+import com.commerce.web.exception.member.MemberException;
+import com.commerce.web.exception.member.MemberExceptionCode;
+import com.commerce.web.exception.product.ProductException;
+import com.commerce.web.exception.product.ProductExceptionCode;
 import com.commerce.web.member.dto.request.MemberInfoUpdateRequestDto;
+import com.commerce.web.member.dto.request.MemberJoinRequestDto;
 import com.commerce.web.member.dto.request.MemberPasswordUpdateRequestDto;
 import com.commerce.web.member.dto.response.MemberInfoResponse;
-import com.commerce.web.member.dto.request.MemberJoinRequestDto;
+import com.commerce.web.order.dto.response.WishListResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final CartRepository cartRepository;
+    private final ProductRepository productRepository;
     private final PasswordEncoder passwordEncoder;
 
     // 이메일 회원 조회
     @Transactional(readOnly = true)
     public Member findById(long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("Unexpected user"));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
     }
 
     // 회원가입
@@ -38,7 +45,7 @@ public class MemberService {
         // 회원 중복 확인
         memberRepository.findByEmail(email).ifPresent(member
                 -> {
-            throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
+            throw new MemberException(MemberExceptionCode.MEMBER_ALREADY);
         });
 
         // 회원 가입.
@@ -51,19 +58,24 @@ public class MemberService {
                 .role(dto.getRole())
                 .build();
         memberRepository.save(member);
-
-        // 상품 장바구니 생성.
-        Cart cart = Cart.builder()
-                .member(member)
-                .build();
-        cartRepository.save(cart);
     }
 
     // 마이 페이지 조회
     @Transactional(readOnly = true)
     public MemberInfoResponse getMyPage(String email) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new NullPointerException("없는 회원 입니다."));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
+
+        // 마이페이지 위시리스트
+        List<WishListResponseDto> result = member.getWishList().stream().map(w -> {
+            Product product = productRepository.findById(w.getProductId())
+                    .orElseThrow(() -> new ProductException(ProductExceptionCode.NOT_FOUND));
+            return WishListResponseDto.builder()
+                    .productId(w.getProductId())
+                    .productName(product.getProductName())
+                    .price(product.getProductPrice())
+                    .build();
+        }).toList();
 
         // 주문, wish List 조회 추가 예정.
         return MemberInfoResponse.builder()
@@ -72,6 +84,7 @@ public class MemberService {
                 .phone(member.getPhone())
                 .address(member.getAddress())
                 .role(member.getRole().getAuthority())
+                .wishList(result)
                 .build();
     }
 
@@ -79,7 +92,7 @@ public class MemberService {
     @Transactional
     public void updateMemberInfo(String email, MemberInfoUpdateRequestDto dto) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("없는 회원입니다."));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
         member.updateAddressPhone(dto.getAddress(), dto.getPhone());
         memberRepository.save(member);
     }
@@ -88,7 +101,7 @@ public class MemberService {
     @Transactional
     public void updateMemberPassword(String email, MemberPasswordUpdateRequestDto dto) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("없는 회원입니다."));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
 
         String currentPassword = dto.getCurrentPassword();
         String confirmPassword = dto.getConfirmPassword();
@@ -99,10 +112,10 @@ public class MemberService {
                 member.updatePassword(newPassword);
                 memberRepository.save(member);
             } else {
-                throw new IllegalArgumentException("입력한 비밀번호가 일치하지 않습니다.");
+                throw new MemberException(MemberExceptionCode.PASSWORD_ERROR);
             }
         } else {
-            throw new IllegalArgumentException("다시 입력해주세요.");
+            throw new MemberException(MemberExceptionCode.NOT_VALID);
         }
     }
 
@@ -110,7 +123,7 @@ public class MemberService {
     @Transactional(readOnly = true)
     public Member getMyMemberWithAuthority() {
         return SecurityUtil.getCurrentUsername().flatMap(memberRepository::findByEmail)
-                .orElseThrow(() -> new IllegalArgumentException("회원이 없습니다."));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
     }
 
 
