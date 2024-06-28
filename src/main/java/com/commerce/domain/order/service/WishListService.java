@@ -2,14 +2,18 @@ package com.commerce.domain.order.service;
 
 import com.commerce.domain.member.entity.Member;
 import com.commerce.domain.member.repository.MemberRepository;
-import com.commerce.domain.order.entity.Cart;
-import com.commerce.domain.order.entity.CartItem;
 import com.commerce.domain.order.entity.WishList;
-import com.commerce.domain.order.repository.CartItemRepository;
-import com.commerce.domain.order.repository.CartRepository;
 import com.commerce.domain.order.repository.WishListRepository;
 import com.commerce.domain.product.entity.Product;
 import com.commerce.domain.product.repository.ProductRepository;
+import com.commerce.web.exception.member.MemberException;
+import com.commerce.web.exception.member.MemberExceptionCode;
+import com.commerce.web.exception.product.ProductException;
+import com.commerce.web.exception.product.ProductExceptionCode;
+import com.commerce.web.exception.wishlist.WishListExceptionCode;
+import com.commerce.web.exception.wishlist.WishlistException;
+import com.commerce.web.order.dto.request.ProductOptionRequestDto;
+import com.commerce.web.order.dto.response.OrderPageViewResponseDto;
 import com.commerce.web.order.dto.response.WishListResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,40 +32,39 @@ public class WishListService {
     private final WishListRepository wishListRepository;
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
-    private final CartItemRepository cartItemRepository;
 
     // wishList 등록.
     @Transactional
     public void wishRegister(Long productId, String email) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("없는 회원입니다."));
-        Optional<WishList> findWishList = wishListRepository
-                .findByMemberAndProductId(member, productId);
-        if (findWishList.isPresent()) {
-            throw new IllegalArgumentException("이미 등록된 상품입니다.");
-        }
-        Optional<Product> product = productRepository.findById(productId);
-        if (product.isPresent()) {
-            wishListRepository.save(WishList.builder()
-                    .member(member)
-                    .productId(productId)
-                    .build());
-        } else {
-            throw new IllegalArgumentException("상품이 없습니다. 확인후 다시 시도 해주세요.");
-        }
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
+
+        wishListRepository.findByMemberAndProductId(member, productId)
+                .ifPresent(w -> {
+                    throw new ProductException(ProductExceptionCode.ALREADY_REGISTER);
+                });
+
+        productRepository.findById(productId).ifPresentOrElse(
+                p -> wishListRepository.save(WishList.builder()
+                        .member(member)
+                        .productId(productId)
+                        .build()),
+                () -> {
+                    throw new ProductException(ProductExceptionCode.NOT_FOUND);
+                });
     }
 
     // wishList 조회
     @Transactional(readOnly = true)
     public List<WishListResponseDto> viewWishList(String email) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("없는 회원입니다."));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
         List<WishList> wishList = member.getWishList();
         List<WishListResponseDto> result = new ArrayList<>();
         for (WishList p : wishList) {
             Optional<Product> product = productRepository.findById(p.getProductId());
             product.ifPresent(value -> result.add(WishListResponseDto.builder()
-                    .id(value.getId())
+                    .productId(value.getId())
                     .productName(value.getProductName())
                     .price(value.getProductPrice())
                     .build()));
@@ -73,27 +76,29 @@ public class WishListService {
     @Transactional
     public void deleteWishList(Long wishListId, String email) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원이 없습니다."));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
         wishListRepository.deleteByIdAndMember(wishListId, member);
     }
 
-    // 장바구니로 보내기
-    @Transactional
-    public void addToCart(String email, Long wishId) {
+    // wishList 주문 페이지 조회(한 종류의 상품만 구매 가능)
+    @Transactional(readOnly = true)
+    public OrderPageViewResponseDto wishToOrderPage(String email, Long wishId,
+                                                    ProductOptionRequestDto dto) {
         Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("회원이 없습니다."));
-        WishList target = wishListRepository.findById(wishId)
-                .orElseThrow(() -> new IllegalArgumentException("상품이 없습니다."));
-        long productId = target.getProductId();
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("상품이 없습니다."));
+                .orElseThrow(() -> new MemberException(MemberExceptionCode.NOT_FOUND));
+        WishList wishList = wishListRepository.findById(wishId)
+                .orElseThrow(() -> new WishlistException(WishListExceptionCode.WISH_LIST_NOT_FOUND));
+        Product product = productRepository.findById(wishList.getProductId())
+                .orElseThrow(() -> new ProductException(ProductExceptionCode.NOT_FOUND));
 
-        CartItem cartItem = CartItem.builder()
-                .cart(member.getCart())
-                .productId(productId)
-                .price(product.getProductPrice())
-                .stock(product.getProductStock())
+        return OrderPageViewResponseDto.builder()
+                .memberId(member.getId())
+                .productId(product.getId())
+                .productName(product.getProductName())
+                .productPrice(product.getProductPrice())
+                .productQuantity(dto.getProductQuantity())
+                .totalPrice(dto.getTotalPrice())
                 .build();
-        cartItemRepository.save(cartItem);
     }
+
 }
