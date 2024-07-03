@@ -59,12 +59,12 @@ public class Member {
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private final LocalDateTime createdAt = LocalDateTime.now();
 
     @LastModifiedDate
     @Column(name = "updated_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private final LocalDateTime updatedAt = LocalDateTime.now();
 
     // 주소, 전화번호 업데이트 메서드
     public void updateAddressPhone(String address, String phone) {

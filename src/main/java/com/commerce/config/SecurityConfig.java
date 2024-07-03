@@ -66,6 +66,8 @@ public class SecurityConfig {
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         // h2 db 접근 누구나 가능
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
+                        // templates 폴더 접근
+                        .requestMatchers("/templates/**").permitAll()
                         // 회원관련 API, 상품관련 API 누구나 접근가능.
                         .requestMatchers(
                                 "/api/member/send-email",  // 인증 이메일 발송
@@ -75,7 +77,10 @@ public class SecurityConfig {
                                 "/api/member/mypage/info", // PUT - 주소, 전화번호 업데이트
                                 "/api/member/mypage/password", // 비밀번호 업데이트
                                 "/api/authenticate", // 로그인
-                                "/api/product/**"
+                                "/api/product/**",
+                                "/swagger-ui/**", // Swagger UI 접근 허용
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -91,4 +96,5 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 }

@@ -47,12 +47,12 @@ public class Product {
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private final LocalDateTime createdAt = LocalDateTime.now();
 
     @LastModifiedDate
     @Column(name = "updated_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private final LocalDateTime updatedAt = LocalDateTime.now();
 
     // 상품 수정 메서드
     public void updateProduct(String productName, int productPrice,

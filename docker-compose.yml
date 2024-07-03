@@ -1,0 +1,14 @@
+services:
+  my-server:
+    build: .
+    ports:
+      - 8080:8080
+
+  my-db:
+    image: mysql
+    environment:
+      MY_ROOT_PASSWORD: password123
+    volumes:
+      - /Users/idongju/Documents/Develop:/var/lib/mysql
+    ports:
+      - 3306:3306
