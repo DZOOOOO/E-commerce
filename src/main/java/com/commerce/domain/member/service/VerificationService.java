@@ -33,7 +33,7 @@ public class VerificationService {
                 && target.getToken().equals(token)
                 && !target.isTokenExpire()
                 && !target.isEmailVerification()
-                && !target.isDelete()) {
+                && !target.isDeleteToken()) {
             // 토큰 상태 업데이트.
             updateTokenExpire(target);
             return true;
@@ -45,7 +45,7 @@ public class VerificationService {
     @Transactional(readOnly = true)
     public boolean findVeri(String email) {
         Verification target = verificationRepository
-                .findByEmailAndTokenExpireAndEmailVerificationAndDelete(email, true, true, false)
+                .findByEmailAndTokenExpireAndEmailVerificationAndDeleteToken(email, true, true, false)
                 .orElse(null);
 
         if (target != null) {
@@ -67,7 +67,7 @@ public class VerificationService {
                                        boolean verification,
                                        boolean delete) {
         return verificationRepository
-                .findByEmailAndTokenExpireAndEmailVerificationAndDelete(email, expiry, verification, delete)
+                .findByEmailAndTokenExpireAndEmailVerificationAndDeleteToken(email, expiry, verification, delete)
                 .orElse(null);
     }
 

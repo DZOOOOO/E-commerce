@@ -61,7 +61,7 @@ public class MemberController {
         return target != null
                 && !target.isEmailVerification()
                 && !target.isTokenExpire()
-                && !target.isDelete();
+                && !target.isDeleteToken();
     }
 
     // 이메일 인증 API

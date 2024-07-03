@@ -3,12 +3,20 @@ services:
     build: .
     ports:
       - 8080:8080
+    depends_on:
+      my-db:
+        condition: service_healthy
 
   my-db:
     image: mysql
     environment:
-      MY_ROOT_PASSWORD: password123
+      MYSQL_ROOT_PASSWORD: password123
+      MYSQL_DATABASE: mydb
     volumes:
-      - /Users/idongju/Documents/Develop:/var/lib/mysql
+      - /Users/idongju/Documents/Develop/docker-mysql:/var/lib/mysql
     ports:
       - 3306:3306
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping" ]
+      interval: 5s
+      retries: 10

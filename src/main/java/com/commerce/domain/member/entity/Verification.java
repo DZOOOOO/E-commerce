@@ -20,24 +20,24 @@ public class Verification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email")
     private String email;
 
-    @Column(name = "token", nullable = false)
+    @Column(name = "token")
     private String token;
 
     // 토큰 만료기간(5분)
-    @Column(name = "expiry_date", nullable = false)
+    @Column(name = "expiry_date")
     private LocalDateTime expiryDate;
 
-    @Column(name = "token_expire", nullable = false)
+    @Column(name = "token_expire")
     private boolean tokenExpire;
 
-    @Column(name = "email_verification", nullable = false)
+    @Column(name = "email_verification")
     private boolean emailVerification;
 
-    @Column(name = "delete")
-    private boolean delete;
+    @Column(name = "delete_token")
+    private boolean deleteToken;
 
     // 토큰 생성 메서드
     public static Verification createVerification(String email,
@@ -52,7 +52,7 @@ public class Verification {
                 .expiryDate(expiryDate)
                 .tokenExpire(tokenExpire)
                 .emailVerification(emailVerification)
-                .delete(delete)
+                .deleteToken(delete)
                 .build();
     }
 
@@ -60,7 +60,7 @@ public class Verification {
     public void emailTokenKill(boolean tokenExpire, boolean emailVerification, boolean delete) {
         this.tokenExpire = tokenExpire;
         this.emailVerification = emailVerification;
-        this.delete = delete;
+        this.deleteToken = delete;
     }
 
     public void updateEmailTokenStatus(boolean tokenExpire, boolean emailVerification) {

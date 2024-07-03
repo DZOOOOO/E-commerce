@@ -30,5 +30,6 @@ public class MemberJoinRequestDto {
 
     private MemberRoleEnum role;
 
+    @Builder.Default
     private boolean emailCheck = false;
 }

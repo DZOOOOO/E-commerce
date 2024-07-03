@@ -40,20 +40,24 @@ public class Order {
     private OrderStatus orderStatus; // 주문 상태여부
 
     @Column(name = "order_confirmation")
+    @Builder.Default
     private boolean orderConfirmation = false; // 구매 확정여부
 
     @Column(name = "order_cancel")
+    @Builder.Default
     private boolean orderCancel = false; // 주문취소
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private final LocalDateTime createdAt = LocalDateTime.now();
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @LastModifiedDate
     @Column(name = "updated_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private final LocalDateTime updatedAt = LocalDateTime.now();
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     // 주문취소
     public void orderCancel() {

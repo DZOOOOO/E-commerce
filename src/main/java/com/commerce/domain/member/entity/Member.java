@@ -49,22 +49,26 @@ public class Member {
     private MemberRoleEnum role;
 
     // wishList
+    @Builder.Default
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<WishList> wishList = new ArrayList<>();
 
     // order
+    @Builder.Default
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<Order> orderList = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private final LocalDateTime createdAt = LocalDateTime.now();
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @LastModifiedDate
     @Column(name = "updated_at", updatable = false)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private final LocalDateTime updatedAt = LocalDateTime.now();
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     // 주소, 전화번호 업데이트 메서드
     public void updateAddressPhone(String address, String phone) {

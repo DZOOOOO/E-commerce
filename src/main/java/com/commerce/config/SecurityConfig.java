@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,9 +53,9 @@ public class SecurityConfig {
                 )
 
                 // enable h2-console
-                .headers(headers ->
-                        headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                )
+//                .headers(headers ->
+//                        headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+//                )
 
                 // Cors 처리
                 .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
@@ -65,7 +64,7 @@ public class SecurityConfig {
                         // resources 접근 허용.
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         // h2 db 접근 누구나 가능
-                        .requestMatchers(PathRequest.toH2Console()).permitAll()
+//                        .requestMatchers(PathRequest.toH2Console()).permitAll()
                         // templates 폴더 접근
                         .requestMatchers("/templates/**").permitAll()
                         // 회원관련 API, 상품관련 API 누구나 접근가능.
