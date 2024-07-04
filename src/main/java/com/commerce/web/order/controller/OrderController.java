@@ -26,7 +26,7 @@ public class OrderController {
     private final OrderService orderService;
 
     // 주문하기 API
-    @PostMapping("/checkout")
+    @PostMapping
     @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> checkOut(@AuthenticationPrincipal UserDetails userDetails,
                                       @Valid @RequestBody OrderCheckOutRequestDto dto) {
@@ -38,7 +38,7 @@ public class OrderController {
     }
 
     // 주문내역 조회 API
-    @GetMapping("/list")
+    @GetMapping
     @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> viewOrderList(@AuthenticationPrincipal UserDetails userDetails,
                                            @Positive @RequestParam int page,
@@ -50,7 +50,7 @@ public class OrderController {
     }
 
     // 주문취소 API
-    @GetMapping("/cancel/{orderId}")
+    @GetMapping("/{orderId}/cancel")
     @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> orderCancel(@AuthenticationPrincipal UserDetails userDetails,
                                          @Positive @PathVariable Long orderId) {
@@ -61,7 +61,7 @@ public class OrderController {
     }
 
     // 주문 구매확정 API
-    @GetMapping("/confirm/{orderId}")
+    @GetMapping("/{orderId}/confirm")
     @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<?> orderConfirm(@AuthenticationPrincipal UserDetails userDetails,
                                           @Positive @PathVariable Long orderId) {

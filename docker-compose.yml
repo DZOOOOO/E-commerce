@@ -1,4 +1,5 @@
 services:
+  # Spring Server
   my-server:
     build: .
     ports:
@@ -6,7 +7,10 @@ services:
     depends_on:
       my-db:
         condition: service_healthy
+      my-cache-server:
+        condition: service_healthy
 
+  # MySQL
   my-db:
     image: mysql
     environment:
@@ -18,5 +22,15 @@ services:
       - 3306:3306
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping" ]
+      interval: 5s
+      retries: 10
+
+  # Redis
+  my-cache-server:
+    image: redis
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       retries: 10

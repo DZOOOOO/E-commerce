@@ -23,7 +23,7 @@ public class ProductController {
     private final ProductService productService;
 
     // 상품 등록 API
-    @PostMapping("/register")
+    @PostMapping
     public ResponseEntity<?> registerProduct(@Valid @RequestBody ProductRegisterRequestDto dto) {
         productService.productRegister(dto);
         return new ResponseEntity<>(ProductResponseDto.builder()
@@ -32,7 +32,7 @@ public class ProductController {
     }
 
     // 상품 리스트 조회 API
-    @GetMapping("/list")
+    @GetMapping
     public ResponseEntity<?> getProducts(@Positive @RequestParam int page,
                                          @Positive @RequestParam int size) {
         ProductPageResponse<ProductSimpleInfoResponse> productList
@@ -41,7 +41,7 @@ public class ProductController {
     }
 
     // 상품 상세 조회 API
-    @GetMapping("/detail/{productId}")
+    @GetMapping("/{productId}")
     public ResponseEntity<?> detailProduct(@Positive @PathVariable("productId") Long productId) {
         ProductInfoResponse target = productService.getProductInfo(productId);
         return new ResponseEntity<>(target, HttpStatus.OK);

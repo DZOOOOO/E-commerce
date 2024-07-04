@@ -9,8 +9,8 @@ import com.commerce.web.member.dto.request.MemberInfoUpdateRequestDto;
 import com.commerce.web.member.dto.request.MemberJoinRequestDto;
 import com.commerce.web.member.dto.request.MemberPasswordUpdateRequestDto;
 import com.commerce.web.member.dto.response.MemberInfoResponse;
-import com.commerce.web.member.dto.response.message.MemberMessage;
 import com.commerce.web.member.dto.response.MemberResponseDto;
+import com.commerce.web.member.dto.response.message.MemberMessage;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ public class MemberController {
 
     // 이메일 발송 API
     @PostMapping("/send-email")
-    public ResponseEntity<?> validEmail(@Valid @RequestBody EmailSendDto dto) {
+    public ResponseEntity<MemberResponseDto> validEmail(@Valid @RequestBody EmailSendDto dto) {
 
         Verification target = verificationService
                 .findValidToken(dto.getTo(), false, false, false);
@@ -54,7 +54,7 @@ public class MemberController {
     /**
      * 이미 존재하는 유효한 토큰을 만료시킬 필요가 있는지 확인합니다.
      *
-     * @param target 검증할 대상 Verification 객체
+     * @param target 검증할 대상 CacheVerification 객체
      * @return 만료시킬 필요가 있으면 true, 그렇지 않으면 false
      */
     private boolean shouldExpireExistingToken(Verification target) {
@@ -82,8 +82,8 @@ public class MemberController {
     }
 
     // 회원가입 API
-    @PostMapping("/join")
-    public ResponseEntity<?> memberJoin(@Valid @RequestBody MemberJoinRequestDto dto) {
+    @PostMapping
+    public ResponseEntity<MemberResponseDto> memberJoin(@Valid @RequestBody MemberJoinRequestDto dto) {
 
         // 이메일 인증 토큰 유효성 체크
         boolean valid = verificationService.findVeri(dto.getEmail());
@@ -108,7 +108,7 @@ public class MemberController {
     // 마이페이지 조회 API -- 관리자, 유저 권한만 접근 가능
     @GetMapping("/mypage")
     @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> memberMyPage(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<MemberInfoResponse> memberMyPage(@AuthenticationPrincipal UserDetails userDetails) {
         MemberInfoResponse myPage = memberService.getMyPage(userDetails.getUsername());
         return new ResponseEntity<>(myPage, HttpStatus.OK);
     }
@@ -116,8 +116,8 @@ public class MemberController {
     // 주소, 전화번호 업데이트 API
     @PutMapping("/mypage/info")
     @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> memberInfoUpdate(@AuthenticationPrincipal UserDetails userDetails,
-                                              @RequestBody MemberInfoUpdateRequestDto dto) {
+    public ResponseEntity<MemberResponseDto> memberInfoUpdate(@AuthenticationPrincipal UserDetails userDetails,
+                                                              @RequestBody MemberInfoUpdateRequestDto dto) {
         memberService.updateMemberInfo(userDetails.getUsername(), dto);
         return new ResponseEntity<>(MemberResponseDto.builder()
                 .message(MemberMessage.MEMBER_UPDATE_OK)
@@ -125,10 +125,10 @@ public class MemberController {
     }
 
     // 비밀번호 변경 API
-    @PutMapping("/mypage/password")
+    @PutMapping("/password")
     @PreAuthorize(value = "hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<?> memberPasswordUpdate(@AuthenticationPrincipal UserDetails userDetails,
-                                                  @RequestBody MemberPasswordUpdateRequestDto dto) {
+    public ResponseEntity<MemberResponseDto> memberPasswordUpdate(@AuthenticationPrincipal UserDetails userDetails,
+                                                                  @RequestBody MemberPasswordUpdateRequestDto dto) {
         memberService.updateMemberPassword(userDetails.getUsername(), dto);
         return new ResponseEntity<>(MemberResponseDto.builder()
                 .message(MemberMessage.MEMBER_UPDATE_OK)
